@@ -1,16 +1,21 @@
 import { useEditor } from '~/App';
 
 export interface INode {
+  type: 'circle' | 'image';
   id: string;
   position: { x: number; y: number };
 }
 
-interface NodeProps extends INode {}
+interface CircleNode extends INode {
+  type: 'circle';
+}
 
-const Node = (props: NodeProps) => {
+interface NodeProps extends CircleNode {}
+
+const CircleNode = (props: NodeProps) => {
   const editor = useEditor();
 
-  const selectSelf = (e: MouseEvent) => {
+  const selectSelf = (e: PointerEvent) => {
     if (editor.tool() === 'pointer') {
       editor.selectNode(props.id);
     }
@@ -32,13 +37,14 @@ const Node = (props: NodeProps) => {
 
   return (
     <circle
+      id={props.id}
       class="cursor-pointer hover:fill-blue"
       r={20}
       fill={active() ? '#74c0fc' : 'white'}
       transform={`translate(${props.position.x} ${props.position.y})`}
-      onMouseDown={selectSelf}
+      onPointerDown={selectSelf}
     />
   );
 };
 
-export default Node;
+export default CircleNode;

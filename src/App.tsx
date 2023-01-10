@@ -6,16 +6,19 @@ import {
   createSignal,
   createUniqueId,
   For,
+  Match,
   on,
   onCleanup,
   onMount,
+  Switch,
   useContext,
 } from 'solid-js';
 import { createStore } from 'solid-js/store';
 import Line, { ILine } from './components/Line';
-import Node, { INode } from './components/Node';
+import CircleNode, { INode } from './components/Node/CircleNode';
+import ImageNode, { IImageNode } from './components/Node/ImageNode';
 
-type Tool = 'pointer' | 'line' | 'node';
+type Tool = 'pointer' | 'line' | 'circle' | 'image';
 
 const EditorContext = createContext();
 
@@ -86,7 +89,7 @@ const App: Component = () => {
     setState('connections', newLineId, { from: nodeOne, to: nodeTwo });
   };
 
-  const onMouseDown = (e: MouseEvent) => {
+  const onPointerDown = (e: PointerEvent) => {
     if (state.selectedNode) {
       setDragState({
         isDragging: true,
@@ -97,9 +100,18 @@ const App: Component = () => {
       });
     }
 
-    if (tool() === 'node') {
+    if (tool() === 'circle') {
       const newID = createUniqueId();
       const newNode: INode = {
+        type: 'circle',
+        id: newID,
+        position: { x: e.clientX, y: e.clientY },
+      };
+      setState('nodes', (p) => ({ ...p, [newID]: newNode }));
+    } else if (tool() === 'image') {
+      const newID = createUniqueId();
+      const newNode: INode = {
+        type: 'image',
         id: newID,
         position: { x: e.clientX, y: e.clientY },
       };
@@ -109,7 +121,7 @@ const App: Component = () => {
     }
   };
 
-  const onMouseMove = (e: MouseEvent) => {
+  const onPointerMove = (e: PointerEvent) => {
     if (dragState().isDragging && state.selectedNode) {
       const startPosition = dragState().startPosition;
       const newPosition = { x: e.clientX - startPosition.x, y: e.clientY - startPosition.y };
@@ -118,14 +130,27 @@ const App: Component = () => {
     }
   };
 
+  const onPointerUp = (e: PointerEvent) => {
+    e.stopPropagation();
+    if (dragState().isDragging && state.selectedNode) {
+      setTimeout(() => {
+        setDragState({
+          isDragging: false,
+          startPosition: { x: 0, y: 0 },
+        });
+      }, 1000);
+    }
+  };
+
   const onKeyDown = (e: KeyboardEvent) => {
-    console.log(e.key);
     if (e.key === 'p') {
       selectTool('pointer');
     } else if (e.key === 'l') {
       selectTool('line');
-    } else if (e.key === 'n') {
-      selectTool('node');
+    } else if (e.key === 'c') {
+      selectTool('circle');
+    } else if (e.key === 'i') {
+      selectTool('image');
     }
   };
 
@@ -136,12 +161,14 @@ const App: Component = () => {
       setCanvasBounds({ x: bounds.left, y: bounds.top, width: bounds.width, height: bounds.height });
     }
 
-    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('pointermove', onPointerMove);
+    document.addEventListener('pointerup', onPointerUp);
 
     document.addEventListener('keydown', onKeyDown);
 
     onCleanup(() => {
-      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('pointermove', onPointerMove);
+      document.removeEventListener('pointerup', onPointerUp);
       document.removeEventListener('keydown', onKeyDown);
     });
   });
@@ -184,6 +211,7 @@ const App: Component = () => {
     startConnection,
     endConnection,
     connectionState,
+    dragState,
   };
 
   return (
@@ -196,27 +224,34 @@ const App: Component = () => {
           <div
             class="w-4 h-4 flex items-center justify-center p-2 text-lg color-white cursor-pointer hover:bg-dark-3/40"
             classList={{ ['bg-dark-4']: tool() === 'pointer' }}
-            onClick={[selectTool, 'pointer']}
+            onPointerUp={[selectTool, 'pointer']}
           >
             P
           </div>
           <div
             class="w-4 h-4 flex items-center justify-center p-2 text-lg color-white cursor-pointer hover:bg-dark-3/40"
             classList={{ ['bg-dark-4']: tool() === 'line' }}
-            onClick={[selectTool, 'line']}
+            onPointerUp={[selectTool, 'line']}
           >
             L
           </div>
           <div
             class="w-4 h-4 flex items-center justify-center p-2 text-lg color-white cursor-pointer hover:bg-dark-3/40"
-            classList={{ ['bg-dark-4']: tool() === 'node' }}
-            onClick={[selectTool, 'node']}
+            classList={{ ['bg-dark-4']: tool() === 'circle' }}
+            onPointerUp={[selectTool, 'circle']}
           >
-            N
+            C
+          </div>
+          <div
+            class="w-4 h-4 flex items-center justify-center p-2 text-lg color-white cursor-pointer hover:bg-dark-3/40"
+            classList={{ ['bg-dark-4']: tool() === 'image' }}
+            onPointerUp={[selectTool, 'image']}
+          >
+            I
           </div>
           <div
             class="absolute -bottom-10 text-xs color-red-1 bg-red-7 p-1 rounded-sm shadow-[0px_0px_6px_2px_rgba(240,62,62,0.5)] cursor-pointer hover:(bg-red-6 color-white)"
-            onClick={reset}
+            onPointerUp={reset}
           >
             Reset/Clear
           </div>
@@ -227,12 +262,23 @@ const App: Component = () => {
           ref={setCanvasRef}
           width="100%"
           height="100%"
-          onClick={clearSelection}
-          onMouseDown={onMouseDown}
+          onPointerUp={clearSelection}
+          onPointerDown={onPointerDown}
         >
-          <For each={Object.values(state.nodes)}>{(node) => <Node {...node} />}</For>
           <For each={Object.values(state.connections)}>
             {(connection) => <Line from={state.nodes[connection.from]} to={state.nodes[connection.to]} />}
+          </For>
+          <For each={Object.values(state.nodes)}>
+            {(node) => (
+              <Switch>
+                <Match when={node.type === 'circle'}>
+                  <CircleNode {...node} type="circle" />
+                </Match>
+                <Match when={node.type === 'image'}>
+                  <ImageNode {...node} type="image" />
+                </Match>
+              </Switch>
+            )}
           </For>
         </svg>
       </div>
@@ -249,6 +295,13 @@ interface EditorContextValues {
   startConnection: (nodeId: string) => void;
   endConnection: (nodeId: string) => void;
   connectionState: Accessor<ConnectionState>;
+  dragState: Accessor<{
+    isDragging: boolean;
+    startPosition: {
+      x: number;
+      y: number;
+    };
+  }>;
 }
 
 export const useEditor = () => useContext(EditorContext) as EditorContextValues;

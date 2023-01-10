@@ -1,4 +1,4 @@
-import { INode } from '../Node';
+import { INode } from '../Node/CircleNode';
 
 export interface ILine {
   from: INode;
@@ -12,31 +12,37 @@ const Line = (props: LineProps) => {
     Math.hypot(props.from.position.x - props.to.position.x, props.from.position.y - props.to.position.y);
 
   const startPoint = () => {
-    let leftStart = props.from.position.x;
-    let topStart = props.from.position.y;
-    let leftEnd = props.to.position.x;
-    let topEnd = props.to.position.y;
+    const startBounds = document.getElementById(props.from.id)!.getBoundingClientRect();
+    const endBounds = document.getElementById(props.to.id)!.getBoundingClientRect();
 
-    let prop = 30 / distance();
+    let leftStart = props.from.position.x + (props.from.type === 'circle' ? 0 : startBounds.width / 2);
+    let topStart = props.from.position.y + (props.from.type === 'circle' ? 0 : startBounds.height / 2);
+    // let leftEnd = props.to.position.x + props.to.type === 'circle' ? 0 : endBounds.width / 2;
+    // let topEnd = props.to.position.y + props.to.type === 'circle' ? 0 : endBounds.height / 2;
 
-    let x = leftEnd * (30 / distance()) + leftStart * (1 - prop);
-    let y = topEnd * (30 / distance()) + topStart * (1 - prop);
+    // let prop = 30 / distance();
 
-    return { x, y };
+    // let x = leftEnd * (30 / distance()) + leftStart * (1 - prop);
+    // let y = topEnd * (30 / distance()) + topStart * (1 - prop);
+
+    return { x: leftStart, y: topStart };
   };
 
   const endPoint = () => {
-    let leftStart = props.from.position.x;
-    let topStart = props.from.position.y;
-    let leftEnd = props.to.position.x;
-    let topEnd = props.to.position.y;
+    const startBounds = document.getElementById(props.from.id)!.getBoundingClientRect();
+    const endBounds = document.getElementById(props.to.id)!.getBoundingClientRect();
 
-    let prop = 50 / distance();
+    // let leftStart = props.from.position.x + props.from.type === 'circle' ? 0 : startBounds.width / 2;
+    // let topStart = props.from.position.y + props.from.type === 'circle' ? 0 : startBounds.height / 2;
+    let leftEnd = props.to.position.x + (props.to.type === 'circle' ? 0 : endBounds.width / 2);
+    let topEnd = props.to.position.y + (props.to.type === 'circle' ? 0 : endBounds.height / 2);
 
-    let x = leftStart * (50 / distance()) + leftEnd * (1 - prop);
-    let y = topStart * (50 / distance()) + topEnd * (1 - prop);
+    // let prop = 50 / distance();
 
-    return { x, y };
+    // let x = leftStart * (50 / distance()) + leftEnd * (1 - prop);
+    // let y = topStart * (50 / distance()) + topEnd * (1 - prop);
+
+    return { x: leftEnd, y: topEnd };
   };
 
   return (

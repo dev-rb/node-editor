@@ -114,7 +114,7 @@ const App: Component = () => {
       const newNode: INode = {
         type: 'image',
         id: newID,
-        position: { x: e.clientX, y: e.clientY },
+        position: { x: e.clientX - 150, y: e.clientY - 100 },
       };
       setState('nodes', (p) => ({ ...p, [newID]: newNode }));
     } else if (tool() === 'line') {
@@ -133,13 +133,13 @@ const App: Component = () => {
 
   const onPointerUp = (e: PointerEvent) => {
     e.stopPropagation();
-    if (dragState().isDragging && state.selectedNode) {
-      setTimeout(() => {
-        setDragState({
-          isDragging: false,
-          startPosition: { x: 0, y: 0 },
-        });
-      }, 1000);
+    if (dragState().isDragging) {
+      setDragState({
+        isDragging: false,
+        startPosition: { x: 0, y: 0 },
+      });
+
+      setState('selectedNode', undefined);
     }
   };
 
@@ -273,15 +273,15 @@ const App: Component = () => {
           >
             I
           </div>
-          <div class="w-fit fixed bottom-4 right-4 md:(absolute -bottom-20 left-50% -translate-x-50%) flex flex-col gap-2">
+          <div class="w-fit fixed bottom-4 right-4 md:(absolute -bottom-25 left-50% -translate-x-50%) flex flex-col gap-2">
             <div
-              class="w-fit text-xs flex items-center justify-center color-red-1 bg-red-7 p-1 rounded-sm shadow-[0px_0px_6px_2px_rgba(240,62,62,0.5)] cursor-pointer hover:(bg-red-6 color-white)"
+              class="w-fit text-xs md:text-sm flex items-center justify-center color-red-1 bg-red-7 p-1 rounded-sm shadow-[0px_0px_6px_2px_rgba(240,62,62,0.5)] cursor-pointer hover:(bg-red-6 color-white)"
               onPointerUp={reset}
             >
               Reset/Clear
             </div>
             <div
-              class="w-fit text-xs flex items-center justify-center color-dark-1 bg-dark-7 p-1 rounded-sm shadow-[0px_0px_6px_2px_rgba(26,27,30,0.5)] cursor-pointer hover:(bg-dark-6/70 color-gray-1)"
+              class="w-fit text-xs md:text-sm flex items-center justify-center color-dark-1 bg-dark-7 p-1 rounded-sm shadow-[0px_0px_6px_2px_rgba(26,27,30,0.5)] cursor-pointer hover:(bg-dark-6/70 color-gray-1)"
               onPointerUp={() => setInstructionsVisible((p) => !p)}
             >
               {instructionsVisible() ? 'Hide' : 'Show'} Instructions

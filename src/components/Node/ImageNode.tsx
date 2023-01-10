@@ -1,4 +1,4 @@
-import { createSignal, JSX, Show } from 'solid-js';
+import { createEffect, createSignal, JSX, Show } from 'solid-js';
 import { useEditor } from '~/App';
 import { INode } from './CircleNode';
 
@@ -50,10 +50,24 @@ const ImageNode = (props: NodeProps) => {
       transform={`translate(${props.position.x} ${props.position.y})`}
       onPointerDown={selectSelf}
     >
+      <defs>
+        <pattern
+          id={props.id + 'image'}
+          patternUnits="objectBoundingBox"
+          width="100%"
+          height="100%"
+          viewBox="0 0 280 180"
+          preserveAspectRatio="xMidYMid slice"
+        >
+          <image href={imageSrc()} width="280" height="180" preserveAspectRatio="xMidYMid slice" />
+        </pattern>
+      </defs>
       <g>
         <rect
-          class="fill-dark-6"
-          classList={{ ['fill-blue-3']: active(), ['fill-dark-6']: !active() }}
+          classList={{
+            ['fill-blue-3']: active(),
+            ['fill-dark-6']: !active(),
+          }}
           rx="4"
           ry="4"
           width="300"
@@ -86,7 +100,18 @@ const ImageNode = (props: NodeProps) => {
             </g>
           }
         >
-          <image href={imageSrc()} width="250" height="180" x="25" y="10" class="object-cover" />
+          <rect
+            classList={{
+              ['fill-dark-4 hover:fill-dark-3/80']: !imageSrc(),
+            }}
+            rx="4"
+            ry="4"
+            width="280"
+            height="180"
+            x="10"
+            y="10"
+            fill={`url(#${props.id + 'image'})`}
+          />
         </Show>
       </g>
     </g>

@@ -219,14 +219,14 @@ const App: Component = () => {
     <EditorContext.Provider value={contextValues}>
       <div class="flex bg-dark-9 font-sans w-screen h-screen">
         <div
-          class="fixed top-50% left-50% -translate-x-50% -translate-y-50% select-none flex flex-col items-center"
+          class="fixed top-50% left-50% -translate-x-50% -translate-y-50% select-none flex flex-col items-center max-w-80 w-75%"
           style={{
             display: instructionsVisible() ? 'flex' : 'none',
           }}
         >
-          <h2 class="color-dark-6"> Node Editor </h2>
+          <h2 class="color-dark-6 text-xl md:text-2xl"> Node Editor </h2>
           <hr class="w-full border-dark-6 border-solid" />
-          <div class="color-dark-4 flex flex-col  gap-1 [&_p]:(flex justify-between gap-20)">
+          <div class="w-full color-dark-4 flex flex-col md:text-base text-sm gap-1 [&_p]:(flex justify-between gap-20)">
             <p>
               (P)ointer <span>Drag a node </span>
             </p>
@@ -244,46 +244,48 @@ const App: Component = () => {
             </p>
           </div>
         </div>
-        <div class="fixed top-4 left-4 bg-dark-9 border-dark-2 border-solid border-1 p-2 z-999 select-none gap-4 flex flex-col items-center rounded-sm">
+        <div class="fixed top-4 left-28% md:left-4 bg-dark-9 border-dark-2 border-solid border-1 p-2 z-999 select-none gap-4 flex md:flex-col xs:flex-row items-center rounded-sm">
           <div
-            class="w-4 h-4 flex items-center justify-center p-2 text-lg color-white cursor-pointer hover:bg-dark-3/40"
+            class="flex items-center justify-center p-2 w-2 h-2  text-sm md:(text-lg w-4 h-4) color-white cursor-pointer hover:bg-dark-3/40"
             classList={{ ['bg-dark-4']: tool() === 'pointer' }}
             onPointerUp={[selectTool, 'pointer']}
           >
             P
           </div>
           <div
-            class="w-4 h-4 flex items-center justify-center p-2 text-lg color-white cursor-pointer hover:bg-dark-3/40"
+            class="flex items-center justify-center p-2 w-2 h-2  text-sm md:(text-lg w-4 h-4) color-white cursor-pointer hover:bg-dark-3/40"
             classList={{ ['bg-dark-4']: tool() === 'line' }}
             onPointerUp={[selectTool, 'line']}
           >
             L
           </div>
           <div
-            class="w-4 h-4 flex items-center justify-center p-2 text-lg color-white cursor-pointer hover:bg-dark-3/40"
+            class="flex items-center justify-center p-2 w-2 h-2  text-sm md:(text-lg w-4 h-4) color-white cursor-pointer hover:bg-dark-3/40"
             classList={{ ['bg-dark-4']: tool() === 'circle' }}
             onPointerUp={[selectTool, 'circle']}
           >
             C
           </div>
           <div
-            class="w-4 h-4 flex items-center justify-center p-2 text-lg color-white cursor-pointer hover:bg-dark-3/40"
+            class="flex items-center justify-center p-2 w-2 h-2  text-sm md:(text-lg w-4 h-4) color-white cursor-pointer hover:bg-dark-3/40"
             classList={{ ['bg-dark-4']: tool() === 'image' }}
             onPointerUp={[selectTool, 'image']}
           >
             I
           </div>
-          <div
-            class="absolute -bottom-10 text-xs color-red-1 bg-red-7 p-1 rounded-sm shadow-[0px_0px_6px_2px_rgba(240,62,62,0.5)] cursor-pointer hover:(bg-red-6 color-white)"
-            onPointerUp={reset}
-          >
-            Reset/Clear
-          </div>
-          <div
-            class="absolute -bottom-25 text-xs color-dark-1 bg-dark-7 p-1 rounded-sm shadow-[0px_0px_6px_2px_rgba(26,27,30,0.5)] cursor-pointer hover:(bg-dark-6/70 color-gray-1)"
-            onPointerUp={() => setInstructionsVisible((p) => !p)}
-          >
-            {instructionsVisible() ? 'Hide' : 'Show'} Instructions
+          <div class="w-fit fixed bottom-4 right-4 md:(absolute -bottom-20 left-50% -translate-x-50%) flex flex-col gap-2">
+            <div
+              class="w-fit text-xs flex items-center justify-center color-red-1 bg-red-7 p-1 rounded-sm shadow-[0px_0px_6px_2px_rgba(240,62,62,0.5)] cursor-pointer hover:(bg-red-6 color-white)"
+              onPointerUp={reset}
+            >
+              Reset/Clear
+            </div>
+            <div
+              class="w-fit text-xs flex items-center justify-center color-dark-1 bg-dark-7 p-1 rounded-sm shadow-[0px_0px_6px_2px_rgba(26,27,30,0.5)] cursor-pointer hover:(bg-dark-6/70 color-gray-1)"
+              onPointerUp={() => setInstructionsVisible((p) => !p)}
+            >
+              {instructionsVisible() ? 'Hide' : 'Show'} Instructions
+            </div>
           </div>
         </div>
         <svg

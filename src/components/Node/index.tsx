@@ -25,11 +25,16 @@ const Node = (props: NodeProps) => {
     }
   };
 
+  const active = () =>
+    editor.state.selectedNode === props.id ||
+    editor.connectionState().nodeOne === props.id ||
+    editor.connectionState().nodeTwo === props.id;
+
   return (
     <circle
-      class="cursor-pointer"
+      class="cursor-pointer hover:fill-blue"
       r={20}
-      fill={editor.state.selectedNode === props.id ? 'blue' : 'white'}
+      fill={active() ? '#74c0fc' : 'white'}
       transform={`translate(${props.position.x} ${props.position.y})`}
       onMouseDown={selectSelf}
     />

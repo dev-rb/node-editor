@@ -189,6 +189,9 @@ const App: Component = () => {
   return (
     <EditorContext.Provider value={contextValues}>
       <div class="flex bg-dark-9 font-sans w-screen h-screen">
+        <div class="fixed top-50% left-50% -translate-x-50% -translate-y-50% select-none">
+          <h2 class="color-dark-6"> Node Editor </h2>
+        </div>
         <div class="fixed top-4 left-4 bg-dark-9 border-dark-2 border-solid border-1 p-2 z-999 select-none gap-4 flex flex-col items-center rounded-sm">
           <div
             class="w-4 h-4 flex items-center justify-center p-2 text-lg color-white cursor-pointer hover:bg-dark-3/40"
@@ -220,6 +223,7 @@ const App: Component = () => {
         </div>
         <svg
           id="canvas"
+          class="z-10"
           ref={setCanvasRef}
           width="100%"
           height="100%"

@@ -39,6 +39,7 @@ const App: Component = () => {
   const [canvasBounds, setCanvasBounds] = createSignal({ x: 0, y: 0, width: 0, height: 0 });
 
   const [tool, setTool] = createSignal<Tool>('pointer');
+  const [instructionsVisible, setInstructionsVisible] = createSignal(true);
 
   const [state, setState] = createStore<EditorState>({
     selectedNode: undefined,
@@ -217,8 +218,31 @@ const App: Component = () => {
   return (
     <EditorContext.Provider value={contextValues}>
       <div class="flex bg-dark-9 font-sans w-screen h-screen">
-        <div class="fixed top-50% left-50% -translate-x-50% -translate-y-50% select-none">
+        <div
+          class="fixed top-50% left-50% -translate-x-50% -translate-y-50% select-none flex flex-col items-center"
+          style={{
+            display: instructionsVisible() ? 'flex' : 'none',
+          }}
+        >
           <h2 class="color-dark-6"> Node Editor </h2>
+          <hr class="w-full border-dark-6 border-solid" />
+          <div class="color-dark-4 flex flex-col  gap-1 [&_p]:(flex justify-between gap-20)">
+            <p>
+              (P)ointer <span>Drag a node </span>
+            </p>
+            <p>
+              (L)ine <span>Draw line between nodes</span>
+            </p>
+            <p>
+              (C)ircle <span>Draw a circle node</span>
+            </p>
+            <p>
+              (I)mage <span>Draw an image node</span>
+            </p>
+            <p class="color-red-7/50">
+              Reset/Clear <span>Clear the canvas</span>
+            </p>
+          </div>
         </div>
         <div class="fixed top-4 left-4 bg-dark-9 border-dark-2 border-solid border-1 p-2 z-999 select-none gap-4 flex flex-col items-center rounded-sm">
           <div
@@ -254,6 +278,12 @@ const App: Component = () => {
             onPointerUp={reset}
           >
             Reset/Clear
+          </div>
+          <div
+            class="absolute -bottom-25 text-xs color-dark-1 bg-dark-7 p-1 rounded-sm shadow-[0px_0px_6px_2px_rgba(26,27,30,0.5)] cursor-pointer hover:(bg-dark-6/70 color-gray-1)"
+            onPointerUp={() => setInstructionsVisible((p) => !p)}
+          >
+            {instructionsVisible() ? 'Hide' : 'Show'} Instructions
           </div>
         </div>
         <svg

@@ -258,7 +258,7 @@ const App: Component = () => {
         </div>
         <svg
           id="canvas"
-          class="z-10"
+          class="z-10 touch-none"
           ref={setCanvasRef}
           width="100%"
           height="100%"

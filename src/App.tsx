@@ -13,13 +13,13 @@ import {
   Switch,
   useContext,
 } from 'solid-js';
-import { createStore } from 'solid-js/store';
+import { createStore, reconcile } from 'solid-js/store';
 import Line, { ILine } from './components/Line';
 import CircleNode, { INode } from './components/Node/CircleNode';
 import ImageNode, { IImageNode } from './components/Node/ImageNode';
 import { clamp } from './utils/math';
 
-type Tool = 'pointer' | 'line' | 'circle' | 'image';
+type Tool = 'pointer' | 'line' | 'circle' | 'image' | 'delete';
 
 const EditorContext = createContext();
 
@@ -162,6 +162,8 @@ const App: Component = () => {
       selectTool('circle');
     } else if (e.key === 'i') {
       selectTool('image');
+    } else if (e.key === 'd') {
+      selectTool('delete');
     }
   };
 
@@ -193,6 +195,16 @@ const App: Component = () => {
     })
   );
 
+  const deleteNode = (toRemove: string) => {
+    const newState = Object.fromEntries(Object.entries(state.nodes).filter(([id]) => id !== toRemove));
+    setState('nodes', reconcile(newState));
+  };
+
+  const deleteConnection = (toRemove: string) => {
+    const newState = Object.fromEntries(Object.entries(state.connections).filter(([id]) => id !== toRemove));
+    setState('connections', reconcile(newState));
+  };
+
   const selectNode = (id: string) => {
     setState('selectedNode', id);
   };
@@ -223,6 +235,8 @@ const App: Component = () => {
     endConnection,
     connectionState,
     dragState,
+    deleteNode,
+    deleteConnection,
   };
 
   return (
@@ -241,7 +255,11 @@ const App: Component = () => {
               (P)ointer <span>Drag a node </span>
             </p>
             <p>
-              (L)ine <span>Draw line between nodes</span>
+              (L)ine
+              <span>
+                Draw line between nodes*
+                <span class="absolute w-full ml-4 color-indigo-7/40">(click on one node and then another)</span>
+              </span>
             </p>
             <p>
               (C)ircle <span>Draw a circle node</span>
@@ -249,10 +267,21 @@ const App: Component = () => {
             <p>
               (I)mage <span>Draw an image node</span>
             </p>
+            <p>
+              (D)elete
+              <span>
+                Delete a node or line*
+                <span class="absolute w-full ml-4 color-indigo-7/40">(click on node or line)</span>
+              </span>
+            </p>
             <p class="color-red-7/50">
               Reset/Clear <span>Clear the canvas</span>
             </p>
           </div>
+          <hr class="w-full border-dark-6 border-solid" />
+          <p class="color-dark-4">
+            Keyboard shortcuts available! <br /> <span class="color-indigo-7/40"> Use the letters in the toolbar </span>
+          </p>
         </div>
         <div class="fixed top-4 left-28% md:left-4 bg-dark-9 border-dark-2 border-solid border-1 p-2 z-999 select-none gap-4 flex md:flex-col xs:flex-row items-center rounded-sm">
           <div
@@ -283,6 +312,13 @@ const App: Component = () => {
           >
             I
           </div>
+          <div
+            class="flex items-center justify-center p-2 w-2 h-2  text-sm md:(text-lg w-4 h-4) color-white cursor-pointer hover:bg-dark-3/40"
+            classList={{ ['bg-dark-4']: tool() === 'delete' }}
+            onPointerUp={[selectTool, 'delete']}
+          >
+            D
+          </div>
           <div class="w-fit fixed bottom-4 right-4 md:(absolute -bottom-25 left-50% -translate-x-50%) flex flex-col gap-2">
             <div
               class="w-fit text-xs md:text-sm flex items-center justify-center color-red-1 bg-red-7 p-1 rounded-sm shadow-[0px_0px_6px_2px_rgba(240,62,62,0.5)] cursor-pointer hover:(bg-red-6 color-white)"
@@ -307,8 +343,8 @@ const App: Component = () => {
           onPointerUp={clearSelection}
           onPointerDown={onPointerDown}
         >
-          <For each={Object.values(state.connections)}>
-            {(connection) => <Line from={state.nodes[connection.from]} to={state.nodes[connection.to]} />}
+          <For each={Object.entries(state.connections)}>
+            {([id, connection]) => <Line id={id} from={state.nodes[connection.from]} to={state.nodes[connection.to]} />}
           </For>
           <For each={Object.values(state.nodes)}>
             {(node) => (
@@ -344,6 +380,8 @@ interface EditorContextValues {
       y: number;
     };
   }>;
+  deleteNode: (toRemove: string) => void;
+  deleteConnection: (toRemove: string) => void;
 }
 
 export const useEditor = () => useContext(EditorContext) as EditorContextValues;

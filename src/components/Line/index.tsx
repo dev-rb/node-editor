@@ -1,3 +1,4 @@
+import { useEditor } from '~/App';
 import { INode } from '../Node/CircleNode';
 
 export interface ILine {
@@ -5,9 +6,12 @@ export interface ILine {
   to: INode;
 }
 
-interface LineProps extends ILine {}
+interface LineProps extends ILine {
+  id: string;
+}
 
 const Line = (props: LineProps) => {
+  const editor = useEditor();
   const distance = () =>
     Math.hypot(props.from.position.x - props.to.position.x, props.from.position.y - props.to.position.y);
 
@@ -45,6 +49,13 @@ const Line = (props: LineProps) => {
     return { x: leftEnd, y: topEnd };
   };
 
+  const onLineClick = (e: PointerEvent) => {
+    if (editor.tool() === 'delete') {
+      e.stopPropagation();
+      editor.deleteConnection(props.id);
+    }
+  };
+
   return (
     <g>
       <marker
@@ -62,11 +73,13 @@ const Line = (props: LineProps) => {
         <polygon points="0 0, 4 2, 0 4" />
       </marker>
       <path
+        class="cursor-pointer"
         fill="transparent"
         stroke="white"
         stroke-width="4"
         marker-end={'url(#arrow)'}
         d={`M ${startPoint().x},${startPoint().y}, L ${endPoint().x}, ${endPoint().y} `}
+        onPointerDown={onLineClick}
       />
     </g>
   );

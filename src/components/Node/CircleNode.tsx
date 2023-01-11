@@ -27,6 +27,9 @@ const CircleNode = (props: NodeProps) => {
       } else {
         editor.startConnection(props.id);
       }
+    } else if (editor.tool() === 'delete') {
+      e.stopPropagation();
+      editor.deleteNode(props.id);
     }
   };
 

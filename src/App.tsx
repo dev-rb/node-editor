@@ -17,6 +17,7 @@ import { createStore } from 'solid-js/store';
 import Line, { ILine } from './components/Line';
 import CircleNode, { INode } from './components/Node/CircleNode';
 import ImageNode, { IImageNode } from './components/Node/ImageNode';
+import { clamp } from './utils/math';
 
 type Tool = 'pointer' | 'line' | 'circle' | 'image';
 
@@ -128,7 +129,13 @@ const App: Component = () => {
   const onPointerMove = (e: PointerEvent) => {
     if (dragState().isDragging && state.selectedNode) {
       const startPosition = dragState().startPosition;
-      const newPosition = { x: e.clientX - startPosition.x, y: e.clientY - startPosition.y };
+      const nodeType = state.nodes[state.selectedNode].type;
+      const nodeWidth = nodeType === 'circle' ? 40 : 300;
+      const nodeHeight = nodeType === 'circle' ? 40 : 200;
+      const newPosition = {
+        x: clamp(e.clientX - startPosition.x, 0, canvasBounds().width - nodeWidth),
+        y: clamp(e.clientY - startPosition.y, 0, canvasBounds().height - nodeHeight),
+      };
 
       setState('nodes', state.selectedNode, 'position', newPosition);
     }

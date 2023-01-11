@@ -1,5 +1,6 @@
-import { useEditor } from '~/App';
-import { INode } from '../Node/CircleNode';
+import { useEditor } from '../Editor';
+import { INode } from '../Node/BaseNode';
+import { useTools } from '../Tools/ToolProvider';
 
 export interface ILine {
   from: INode;
@@ -12,6 +13,7 @@ interface LineProps extends ILine {
 
 const Line = (props: LineProps) => {
   const editor = useEditor();
+  const tools = useTools();
   const distance = () =>
     Math.hypot(props.from.position.x - props.to.position.x, props.from.position.y - props.to.position.y);
 
@@ -19,8 +21,8 @@ const Line = (props: LineProps) => {
     const startBounds = document.getElementById(props.from.id)!.getBoundingClientRect();
     const endBounds = document.getElementById(props.to.id)!.getBoundingClientRect();
 
-    let leftStart = props.from.position.x + (props.from.type === 'circle' ? 0 : startBounds.width / 2);
-    let topStart = props.from.position.y + (props.from.type === 'circle' ? 0 : startBounds.height / 2);
+    let leftStart = props.from.position.x + props.from.size.width / 2;
+    let topStart = props.from.position.y + props.from.size.height / 2;
     // let leftEnd = props.to.position.x + props.to.type === 'circle' ? 0 : endBounds.width / 2;
     // let topEnd = props.to.position.y + props.to.type === 'circle' ? 0 : endBounds.height / 2;
 
@@ -38,8 +40,8 @@ const Line = (props: LineProps) => {
 
     // let leftStart = props.from.position.x + props.from.type === 'circle' ? 0 : startBounds.width / 2;
     // let topStart = props.from.position.y + props.from.type === 'circle' ? 0 : startBounds.height / 2;
-    let leftEnd = props.to.position.x + (props.to.type === 'circle' ? 0 : endBounds.width / 2);
-    let topEnd = props.to.position.y + (props.to.type === 'circle' ? 0 : endBounds.height / 2);
+    let leftEnd = props.to.position.x + props.to.size.width / 2;
+    let topEnd = props.to.position.y + props.to.size.height / 2;
 
     // let prop = 50 / distance();
 
@@ -50,7 +52,7 @@ const Line = (props: LineProps) => {
   };
 
   const onLineClick = (e: PointerEvent) => {
-    if (editor.tool() === 'delete') {
+    if (tools.activeTool() === 'delete') {
       e.stopPropagation();
       editor.deleteConnection(props.id);
     }

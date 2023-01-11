@@ -1,6 +1,6 @@
-import { createEffect, createSignal, JSX, Show } from 'solid-js';
-import { useEditor } from '~/App';
-import { INode } from './CircleNode';
+import { createSignal, JSX, Show } from 'solid-js';
+import { useEditor } from '../Editor';
+import { INode } from './BaseNode';
 
 export interface IImageNode extends INode {
   type: 'image';
@@ -14,24 +14,6 @@ const ImageNode = (props: NodeProps) => {
 
   const [imageSrc, setImageSrc] = createSignal<string>();
 
-  const selectSelf = (e: PointerEvent) => {
-    if (editor.tool() === 'pointer') {
-      editor.selectNode(props.id);
-    }
-
-    if (editor.tool() === 'line') {
-      e.stopPropagation();
-      if (editor.connectionState().isConnecting) {
-        editor.endConnection(props.id);
-      } else {
-        editor.startConnection(props.id);
-      }
-    } else if (editor.tool() === 'delete') {
-      e.stopPropagation();
-      editor.deleteNode(props.id);
-    }
-  };
-
   const handleImageClick: JSX.EventHandlerUnion<HTMLInputElement, Event> = (e) => {
     const files = e.currentTarget.files;
 
@@ -40,19 +22,13 @@ const ImageNode = (props: NodeProps) => {
       setImageSrc(URL.createObjectURL(files[0]));
     }
   };
-
   const active = () =>
-    (editor.state.selectedNode === props.id && editor.dragState().isDragging) ||
+    editor.state.selectedNode === props.id ||
     editor.connectionState().nodeOne === props.id ||
     editor.connectionState().nodeTwo === props.id;
 
   return (
-    <g
-      id={props.id}
-      class="cursor-move"
-      transform={`translate(${props.position.x} ${props.position.y})`}
-      onPointerDown={selectSelf}
-    >
+    <g>
       <defs>
         <pattern
           id={props.id + 'image'}

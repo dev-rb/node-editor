@@ -88,6 +88,7 @@ const App: Component = () => {
     }
     const newLineId = createUniqueId();
     setState('connections', newLineId, { from: nodeOne, to: nodeTwo });
+    selectTool('pointer');
   };
 
   const onPointerDown = (e: PointerEvent) => {
@@ -109,6 +110,7 @@ const App: Component = () => {
         position: { x: e.clientX, y: e.clientY },
       };
       setState('nodes', (p) => ({ ...p, [newID]: newNode }));
+      selectTool('pointer');
     } else if (tool() === 'image') {
       const newID = createUniqueId();
       const newNode: INode = {
@@ -117,6 +119,7 @@ const App: Component = () => {
         position: { x: e.clientX - 150, y: e.clientY - 100 },
       };
       setState('nodes', (p) => ({ ...p, [newID]: newNode }));
+      selectTool('pointer');
     } else if (tool() === 'line') {
       setConnectionState({ nodeOne: undefined, nodeTwo: undefined, isConnecting: false });
     }

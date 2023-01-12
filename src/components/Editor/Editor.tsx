@@ -108,8 +108,16 @@ export const Editor: ParentComponent = (props) => {
         const startPosition = startPositions[i];
         const node = editor.state.nodes[editor.state.selectedNodes[i]];
         const newPosition = {
-          x: clamp(e.clientX - startPosition.x, 0, newSelectionPos.x + (node.position.x - selectionBounds().x)),
-          y: clamp(e.clientY - startPosition.y, 0, newSelectionPos.y + (node.position.y - selectionBounds().y)),
+          x: clamp(
+            e.clientX - startPosition.x,
+            node.position.x - newSelectionPos.x,
+            newSelectionPos.x + (node.position.x - selectionBounds().x)
+          ),
+          y: clamp(
+            e.clientY - startPosition.y,
+            node.position.y - newSelectionPos.y,
+            newSelectionPos.y + (node.position.y - selectionBounds().y)
+          ),
         };
         editor.updateNodePosition(node.id, newPosition);
       }

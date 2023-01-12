@@ -20,6 +20,7 @@ import Line from './Line';
 import BaseNode, { INode } from './Node/BaseNode';
 import CircleNode from './Node/CircleNode';
 import ImageNode from './Node/ImageNode';
+import Selection from './Selection';
 import { Toolbar } from './Tools';
 import { useTools } from './Tools/ToolProvider';
 
@@ -31,7 +32,7 @@ const DEFAULT_NODE_SIZE = {
 const EditorContext = createContext();
 
 interface EditorState {
-  selectedNode: string | undefined;
+  selectedNodes: string[];
   nodes: Record<string, INode>;
   connections: Record<string, { from: string; to: string }>;
 }
@@ -46,7 +47,7 @@ export const EditorProvider: ParentComponent = (props) => {
   const tools = useTools();
 
   const [state, setState] = createStore<EditorState>({
-    selectedNode: undefined,
+    selectedNodes: [],
     nodes: {},
     connections: {},
   });
@@ -80,8 +81,10 @@ export const EditorProvider: ParentComponent = (props) => {
     ) {
       return;
     }
+
     const newLineId = createUniqueId();
     setState('connections', newLineId, { from: nodeOne, to: nodeTwo });
+
     tools.selectTool('pointer');
   };
 
@@ -90,7 +93,10 @@ export const EditorProvider: ParentComponent = (props) => {
     const newNode: INode = {
       type: type,
       id: newID,
-      position: position,
+      position: {
+        x: position.x - DEFAULT_NODE_SIZE[type].width / 2,
+        y: position.y - DEFAULT_NODE_SIZE[type].height / 2,
+      },
       size: { width: DEFAULT_NODE_SIZE[type].width, height: DEFAULT_NODE_SIZE[type].height },
     };
 
@@ -112,20 +118,32 @@ export const EditorProvider: ParentComponent = (props) => {
 
   const deleteNode = (toRemove: string) => {
     const newState = Object.fromEntries(Object.entries(state.nodes).filter(([id]) => id !== toRemove));
+
     setState('nodes', reconcile(newState));
   };
 
   const deleteConnection = (toRemove: string) => {
     const newState = Object.fromEntries(Object.entries(state.connections).filter(([id]) => id !== toRemove));
+
     setState('connections', reconcile(newState));
   };
 
   const selectNode = (id: string) => {
-    setState('selectedNode', id);
+    setState('selectedNodes', [id]);
+  };
+
+  const toggleNode = (id: string) => {
+    let newState = [...state.selectedNodes];
+    if (newState.includes(id)) {
+      newState = newState.filter((v) => v !== id);
+    } else {
+      newState.push(id);
+    }
+    setState('selectedNodes', newState);
   };
 
   const clearSelection = () => {
-    setState('selectedNode', undefined);
+    setState('selectedNodes', []);
   };
 
   const resetCurrentConnection = () => {
@@ -136,7 +154,7 @@ export const EditorProvider: ParentComponent = (props) => {
     setState({
       connections: {},
       nodes: {},
-      selectedNode: undefined,
+      selectedNodes: [],
     });
     resetCurrentConnection();
   };
@@ -149,6 +167,7 @@ export const EditorProvider: ParentComponent = (props) => {
 
   const contextValues = {
     state,
+    toggleNode,
     selectNode,
     resetCanvas,
     startConnection,
@@ -167,6 +186,7 @@ export const EditorProvider: ParentComponent = (props) => {
 
 interface EditorContextValues {
   state: EditorState;
+  toggleNode: (id: string) => void;
   selectNode: (id: string) => void;
   resetCanvas: () => void;
   startConnection: (nodeId: string) => void;
@@ -203,21 +223,67 @@ export const Editor: ParentComponent = (props) => {
 
   const [canvasRef, setCanvasRef] = createSignal<SVGSVGElement>();
   const [canvasBounds, setCanvasBounds] = createSignal({ x: 0, y: 0, width: 0, height: 0 });
+
+  const [selectionBounds, setSelectionBounds] = createSignal({ x: 0, y: 0, width: 0, height: 0 });
+
   const [instructionsVisible, setInstructionsVisible] = createSignal(true);
-  const [dragState, setDragState] = createSignal({
+  const [dragState, setDragState] = createSignal<{
+    isDragging: boolean;
+    startPosition: {
+      x: number;
+      y: number;
+    }[];
+  }>({
     isDragging: false,
-    startPosition: { x: 0, y: 0 },
+    startPosition: [{ x: 0, y: 0 }],
   });
 
+  const updateSelection = () => {
+    const selected = editor.state.selectedNodes.map((id) => editor.state.nodes[id]);
+
+    const newBounds = selected.reduce(
+      (acc, curr) => {
+        if (curr.position.x < acc.x) {
+          acc.x = curr.position.x;
+        }
+
+        if (curr.position.y < acc.y) {
+          acc.y = curr.position.y;
+        }
+
+        if (curr.position.x + curr.size.width > acc.right) {
+          acc.right = curr.position.x + curr.size.width;
+        }
+
+        if (curr.position.y + curr.size.height > acc.bottom) {
+          acc.bottom = curr.position.y + curr.size.height;
+        }
+
+        return acc;
+      },
+      { x: Number.MAX_SAFE_INTEGER, y: Number.MAX_SAFE_INTEGER, right: 0, bottom: 0 }
+    );
+    setSelectionBounds({
+      x: newBounds.x,
+      y: newBounds.y,
+      width: newBounds.right - newBounds.x,
+      height: newBounds.bottom - newBounds.y,
+    });
+  };
+
   const onPointerDown = (e: PointerEvent) => {
-    if (editor.state.selectedNode) {
+    if (editor.state.selectedNodes.length && tools.activeTool() === 'pointer' && e.defaultPrevented) {
+      updateSelection();
       setDragState({
         isDragging: true,
-        startPosition: {
-          x: e.clientX - editor.state.nodes[editor.state.selectedNode].position.x,
-          y: e.clientY - editor.state.nodes[editor.state.selectedNode].position.y,
-        },
+        startPosition: [
+          ...editor.state.selectedNodes.map((id) => ({
+            x: e.clientX - editor.state.nodes[id].position.x,
+            y: e.clientY - editor.state.nodes[id].position.y,
+          })),
+        ],
       });
+      return;
     }
 
     if (tools.activeTool() === 'circle' || tools.activeTool() === 'image') {
@@ -225,19 +291,26 @@ export const Editor: ParentComponent = (props) => {
       tools.selectTool('pointer');
     } else if (tools.activeTool() === 'line') {
       editor.resetCurrentConnection();
+    } else if (tools.activeTool() === 'pointer') {
+      editor.clearSelection();
     }
   };
 
   const onPointerMove = (e: PointerEvent) => {
-    if (dragState().isDragging && editor.state.selectedNode) {
-      const startPosition = dragState().startPosition;
-      const nodeWidth = editor.state.nodes[editor.state.selectedNode].size.width;
-      const nodeHeight = editor.state.nodes[editor.state.selectedNode].size.height;
-      const newPosition = {
-        x: clamp(e.clientX - startPosition.x, 0, canvasBounds().width - nodeWidth),
-        y: clamp(e.clientY - startPosition.y, 0, canvasBounds().height - nodeHeight),
-      };
-      editor.updateNodePosition(editor.state.selectedNode, newPosition);
+    if (dragState().isDragging && editor.state.selectedNodes.length) {
+      const startPositions = dragState().startPosition;
+      for (let i = 0; i < startPositions.length; i++) {
+        const startPosition = startPositions[i];
+        const node = editor.state.nodes[editor.state.selectedNodes[i]];
+        const nodeWidth = node.size.width;
+        const nodeHeight = node.size.height;
+        const newPosition = {
+          x: clamp(e.clientX - startPosition.x, 0, canvasBounds().width - nodeWidth),
+          y: clamp(e.clientY - startPosition.y, 0, canvasBounds().height - nodeHeight),
+        };
+        editor.updateNodePosition(node.id, newPosition);
+      }
+      updateSelection();
     }
   };
 
@@ -246,10 +319,8 @@ export const Editor: ParentComponent = (props) => {
     if (dragState().isDragging) {
       setDragState({
         isDragging: false,
-        startPosition: { x: 0, y: 0 },
+        startPosition: [],
       });
-
-      editor.clearSelection();
     }
   };
 
@@ -278,9 +349,9 @@ export const Editor: ParentComponent = (props) => {
         ref={setCanvasRef}
         width="100%"
         height="100%"
-        onPointerUp={editor.clearSelection}
         onPointerDown={onPointerDown}
       >
+        <Selection position={{ ...selectionBounds() }} size={{ ...selectionBounds() }} />
         <For each={Object.entries(editor.state.connections)}>
           {([id, connection]) => (
             <Line id={id} from={editor.state.nodes[connection.from]} to={editor.state.nodes[connection.to]} />

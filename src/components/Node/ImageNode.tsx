@@ -23,7 +23,7 @@ const ImageNode = (props: NodeProps) => {
     }
   };
   const active = () =>
-    editor.state.selectedNode === props.id ||
+    editor.state.selectedNodes.includes(props.id) ||
     editor.connectionState().nodeOne === props.id ||
     editor.connectionState().nodeTwo === props.id;
 

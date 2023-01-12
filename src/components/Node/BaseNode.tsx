@@ -1,4 +1,4 @@
-import { ParentComponent } from 'solid-js';
+import { createSignal, onMount, ParentComponent } from 'solid-js';
 import { useEditor } from '../Editor';
 import { useTools } from '../Tools/ToolProvider';
 
@@ -15,9 +15,16 @@ const BaseNode: ParentComponent<BaseNodeProps> = (props) => {
   const editor = useEditor();
   const tools = useTools();
 
+  const [shift, setShift] = createSignal(false);
+
   const selectSelf = (e: PointerEvent) => {
     if (tools.activeTool() === 'pointer') {
-      editor.selectNode(props.id);
+      e.preventDefault();
+      if (shift()) {
+        editor.toggleNode(props.id);
+      } else if (!editor.state.selectedNodes.includes(props.id)) {
+        editor.selectNode(props.id);
+      }
     }
 
     if (tools.activeTool() === 'line') {
@@ -32,6 +39,19 @@ const BaseNode: ParentComponent<BaseNodeProps> = (props) => {
       editor.deleteNode(props.id);
     }
   };
+
+  onMount(() => {
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Shift') {
+        setShift(true);
+      }
+    });
+    document.addEventListener('keyup', (e) => {
+      if (e.key === 'Shift') {
+        setShift(false);
+      }
+    });
+  });
 
   return (
     <svg

@@ -1,6 +1,5 @@
 import { Component } from 'solid-js';
 import { Editor, EditorProvider } from './components/Editor';
-import Selection from './components/Selection';
 import { ToolsProvider } from './components/Tools';
 
 const App: Component = () => {

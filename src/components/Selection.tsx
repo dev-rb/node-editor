@@ -26,28 +26,56 @@ const Selection = (props: SelectionProps) => {
             cx={0}
             cy={0}
             r={6}
-            class={`comp-handle-blue-40 stroke-white/50 stroke-1 cursor-nw-resize hover:(fill-blue-6)`}
+            class={`fill-blue-7/40  cursor-nw-resize hover:(fill-blue-6)`}
+            onPointerDown={onResizeStart}
+          />
+          <circle
+            cx={'50%'}
+            cy={0}
+            r={6}
+            class={`fill-blue-7/40  cursor-n-resize hover:(fill-blue-6)`}
             onPointerDown={onResizeStart}
           />
           <circle
             cx={'100%'}
             cy={0}
             r={6}
-            class={`comp-handle-blue-40 stroke-white/50 stroke-1 cursor-ne-resize hover:(fill-blue-6)`}
+            class={`fill-blue-7/40  cursor-ne-resize hover:(fill-blue-6)`}
+            onPointerDown={onResizeStart}
+          />
+          <circle
+            cx={0}
+            cy={'50%'}
+            r={6}
+            class={`fill-blue-7/40  cursor-w-resize hover:(fill-blue-6)`}
             onPointerDown={onResizeStart}
           />
           <circle
             cx={0}
             cy={'100%'}
             r={6}
-            class={`comp-handle-blue-40 stroke-white/50 stroke-1 cursor-sw-resize hover:(fill-blue-6)`}
+            class={`fill-blue-7/40  cursor-sw-resize hover:(fill-blue-6)`}
+            onPointerDown={onResizeStart}
+          />
+          <circle
+            cx={'100%'}
+            cy={'50%'}
+            r={6}
+            class={`fill-blue-7/40  cursor-e-resize hover:(fill-blue-6)`}
             onPointerDown={onResizeStart}
           />
           <circle
             cx={'100%'}
             cy={'100%'}
             r={6}
-            class={`comp-handle-blue-40 stroke-white/50 stroke-1 cursor-se-resize hover:(fill-blue-6)`}
+            class={`fill-blue-7/40  cursor-se-resize hover:(fill-blue-6)`}
+            onPointerDown={onResizeStart}
+          />
+          <circle
+            cx={'50%'}
+            cy={'100%'}
+            r={6}
+            class={`fill-blue-7/40  cursor-s-resize hover:(fill-blue-6)`}
             onPointerDown={onResizeStart}
           />
         </Show>
